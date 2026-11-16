@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_flutter_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword123
+      MYSQL_DATABASE: flutter_auth_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_container
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql_db
+      MYSQL_ROOT_PASSWORD: rootpassword123
+    depends_on:
+      - mysql_db
+
+  php_backend:
+    build: .
+    container_name: php_backend_container
+    restart: always
+    ports:
+      - "3000:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      DB_HOST: mysql_db
+      DB_NAME: flutter_auth_db
+      DB_USER: root
+      DB_PASS: rootpassword123
+    depends_on:
+      - mysql_db
+
+volumes:
+  mysql_data:
